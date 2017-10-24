@@ -82,14 +82,15 @@ const init = () => {
 }
 
 const update = dt => {
-    let dx = 0, dy = 0
+    let dx = 0, dy = 0, moved = false
     if (btn('Left')) dx = -1
     if (btn('Right')) dx = 1
     if (btn('Up')) dy = -1
     if (btn('Down')) dy = 1
+    if (dx !== 0 || dy !== 0) moved = true
     currentTetra.x = clamp(0, currentField.w - 1, currentTetra.x + dx)
     currentTetra.y = clamp(0, currentField.h - 1, currentTetra.y + dy)
-    if (currentTick >= 0.75) {
+    if (moved) {
         for (const enemy of enemies) {
             enemy.x += enemy.dx
             enemy.y += enemy.dy
@@ -99,8 +100,8 @@ const update = dt => {
                 enemy.y > currentField.h - 1)
                 enemy.remove = true
         }
-        currentTick = 0
     }
+    currentTick = 0
     console.log(enemies)
     enemies = enemies.filter(e => e.remove === false)
     currentTick += dt
