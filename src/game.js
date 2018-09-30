@@ -1,6 +1,6 @@
 const canvas = document.getElementById('stage')
 , stage = canvas.getContext('2d')
-, sw = 480
+, sw = 640
 , sh = 640
 , buttons = {
     Left: 0,
@@ -20,30 +20,6 @@ stage.fillColor = 'black'
 stage.fillRect(0, 0, canvas.width, canvas.height)
 
 let currentTetra, currentField, currentTick = 0, enemies = []
-
-document.addEventListener('keydown', ev => {
-    if (ev.key === 'a') {
-        if (!buttons.Left) buttons.Left = 1
-    } else if (ev.key === 'd') {
-        if (!buttons.Right) buttons.Right = 1
-    } else if (ev.key === 's') {
-        if (!buttons.Down) buttons.Down = 1
-    } else if (ev.key === 'w') {
-        if (!buttons.Up) buttons.Up = 1
-    }
-})
-
-document.addEventListener('keyup', ev => {
-    if (ev.key === 'a') {
-        if (buttons.Left) buttons.Left = 0
-    } else if (ev.key === 'd') {
-        if (buttons.Right) buttons.Right = 0
-    } else if (ev.key === 's') {
-        if (buttons.Down) buttons.Down = 0
-    } else if (ev.key === 'w') {
-        if (buttons.Up) buttons.Up = 0
-    }
-})
 
 const btn = name => name in buttons && buttons[name]
 
@@ -67,7 +43,8 @@ const Field = (w, h, offsetX=0, offsetY=0) => ({
 })
 
 const Tetra = (x, y, color='yellow') => ({
-    x, y, color
+  centreX: x,
+  y, color
 })
 
 const Enemy = (x, y, dx, dy, color='pink') => ({
@@ -75,8 +52,10 @@ const Enemy = (x, y, dx, dy, color='pink') => ({
 })
 
 const init = () => {
-    currentField = Field(18, 28, 30)
+    currentField = Field(32, 35, 30)
+
     currentTetra = Tetra(3, 3)
+
     enemies.push(Enemy(0, 0, 1, 1, 'hotpink'))
     enemies.push(Enemy(10, 0, -1, 1, 'blue'))
 }
@@ -87,7 +66,7 @@ const update = dt => {
     if (btn('Right')) dx = 1
     if (btn('Up')) dy = -1
     if (btn('Down')) dy = 1
-    currentTetra.x = clamp(0, currentField.w - 1, currentTetra.x + dx)
+    currentTetra.centreX = clamp(0, currentField.w - 1, currentTetra.centreX + dx)
     currentTetra.y = clamp(0, currentField.h - 1, currentTetra.y + dy)
     if (currentTick >= 0.75) {
         for (const enemy of enemies) {
@@ -119,7 +98,7 @@ const render = () => {
     }
     for (let j = 0; j < currentField.h; j++) {
         for (let i = 0; i < currentField.w; i++) {
-            if (i === currentTetra.x && j === currentTetra.y) {
+            if (i === currentTetra.centreX && j === currentTetra.y) {
                 stage.fillStyle = currentTetra.color
                 const cellX = (i * (cellW + 2)) + currentField.offsetX
                 , cellY = (j * (cellH + 2)) + currentField.offsetY
