@@ -44,7 +44,8 @@ const Field = (w, h, offsetX=0, offsetY=0) => ({
 
 const Tetra = (x, y, color='yellow') => ({
   centreX: x,
-  y, color
+  centreY: y,
+  color
 })
 
 const Enemy = (x, y, dx, dy, color='pink') => ({
@@ -67,7 +68,7 @@ const update = dt => {
     if (btn('Up')) dy = -1
     if (btn('Down')) dy = 1
     currentTetra.centreX = clamp(0, currentField.w - 1, currentTetra.centreX + dx)
-    currentTetra.y = clamp(0, currentField.h - 1, currentTetra.y + dy)
+    currentTetra.centreY = clamp(0, currentField.h - 1, currentTetra.centreY + dy)
     if (currentTick >= 0.75) {
         for (const enemy of enemies) {
             enemy.x += enemy.dx
@@ -98,7 +99,7 @@ const render = () => {
     }
     for (let j = 0; j < currentField.h; j++) {
         for (let i = 0; i < currentField.w; i++) {
-            if (i === currentTetra.centreX && j === currentTetra.y) {
+            if (i === currentTetra.centreX && j === currentTetra.centreY) {
                 stage.fillStyle = currentTetra.color
                 const cellX = (i * (cellW + 2)) + currentField.offsetX
                 , cellY = (j * (cellH + 2)) + currentField.offsetY
