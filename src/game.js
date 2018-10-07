@@ -19,7 +19,7 @@ canvas.height = sh
 stage.fillColor = 'black'
 stage.fillRect(0, 0, canvas.width, canvas.height)
 
-let currentTetra, currentField, currentTick = 0, enemies = []
+let currentAmoeba, currentField, currentTick = 0, enemies = []
 
 const btn = name => name in buttons && buttons[name]
 
@@ -42,33 +42,38 @@ const Field = (w, h, offsetX=0, offsetY=0) => ({
     offsetY
 })
 
-const Tetra = (x, y, color='yellow') => ({
+const Amoeba = (x, y, color='yellow') => ({
   centreX: x,
   centreY: y,
   color
 })
 
-const Enemy = (x, y, dx, dy, color='pink') => ({
+
+
+const Other = (x, y, dx, dy, color='pink') => ({
     x, y, dx, dy, color, remove: false
 })
 
 const init = () => {
     currentField = Field(32, 35, 30)
 
-    currentTetra = Tetra(3, 3)
-
-    enemies.push(Enemy(0, 0, 1, 1, 'hotpink'))
-    enemies.push(Enemy(10, 0, -1, 1, 'blue'))
+    currentAmoeba = Amoeba(3, 3)
+    stage.fillRect(currentAmoeba.centreX, currentAmoeba.centreY, 24, 24)
+    enemies.push(Other(0, 0, 1, 1, 'hotpink'))
+    enemies.push(Other(10, 0, -1, 1, 'blue'))
 }
 
 const update = dt => {
+
     let dx = 0, dy = 0
     if (btn('Left')) dx = -1
     if (btn('Right')) dx = 1
     if (btn('Up')) dy = -1
     if (btn('Down')) dy = 1
-    currentTetra.centreX = clamp(0, currentField.w - 1, currentTetra.centreX + dx)
-    currentTetra.centreY = clamp(0, currentField.h - 1, currentTetra.centreY + dy)
+
+    currentAmoeba.centreX = 2
+    currentAmoeba.centreY = clamp(0, currentField.h - 1, currentAmoeba.centreY + dy)
+
     if (currentTick >= 0.75) {
         for (const enemy of enemies) {
             enemy.x += enemy.dx
@@ -81,15 +86,19 @@ const update = dt => {
         }
         currentTick = 0
     }
+
     console.log(enemies)
     enemies = enemies.filter(e => e.remove === false)
+
     currentTick += dt
 }
 
 const render = () => {
     stage.fillStyle = 'black'
     stage.fillRect(0, 0, sw, sh)
+
     for (let j = 0; j < currentField.h; j++) {
+
         for (let i = 0; i < currentField.w; i++) {
             stage.fillStyle = '#333'
             stage.fillRect((i * (cellW + 2)) + currentField.offsetX,
@@ -97,24 +106,30 @@ const render = () => {
                            cellW, cellH)
         }
     }
+
     for (let j = 0; j < currentField.h; j++) {
+
         for (let i = 0; i < currentField.w; i++) {
-            if (i === currentTetra.centreX && j === currentTetra.centreY) {
-                stage.fillStyle = currentTetra.color
+
+            if (i === currentAmoeba.centreX && j === currentAmoeba.centreY) {
+                stage.fillStyle = currentAmoeba.color
+
                 const cellX = (i * (cellW + 2)) + currentField.offsetX
                 , cellY = (j * (cellH + 2)) + currentField.offsetY
-                stage.fillRect(cellX + 2, cellY + 2,
-                               cellW - 4, cellH - 4)
+                stage.fillRect(cellX + 6, cellY + 6,
+                               cellW + 14, cellH + 14)
             }
+
         }
     }
+
     for (const enemy of enemies) {
-        const cellX = (enemy.x * (cellW + 2)) + currentField.offsetX
-        , cellY = (enemy.y * (cellH + 2)) + currentField.offsetY
-        stage.fillStyle = enemy.color
-        stage.fillRect(cellX + 2, cellY + 2,
-                       cellW - 4, cellH - 4)
-    }
+       const cellX = (enemy.x * (cellW + 2)) + currentField.offsetX
+       , cellY = (enemy.y * (cellH + 2)) + currentField.offsetY
+       stage.fillStyle = enemy.color
+       stage.fillRect(cellX + 14, cellY + 14,
+                      cellW - 10, cellH - 10)
+   }
 }
 
 const loop = () => {
