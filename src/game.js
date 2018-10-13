@@ -42,9 +42,12 @@ const Field = (w, h, offsetX=0, offsetY=0) => ({
     offsetY
 })
 
-const Amoeba = (x, y, color='yellow') => ({
-  centreX: x,
-  centreY: y,
+const Amoeba = (x, y, sizeFactor=2, color='yellow') => ({
+  startX: x,
+  startY: y,
+  sizeFactor: sizeFactor,
+  centreX: x*sizeFactor,
+  centreY: y*sizeFactor,
   color
 })
 
@@ -55,10 +58,10 @@ const Other = (x, y, dx, dy, color='pink') => ({
 })
 
 const init = () => {
-    currentField = Field(32, 35, 30)
+    currentField = Field(32, 32, 16, 16)
 
-    currentAmoeba = Amoeba(3, 3)
-    stage.fillRect(currentAmoeba.centreX, currentAmoeba.centreY, 24, 24)
+    currentAmoeba = Amoeba(8, 8)
+
     enemies.push(Other(0, 0, 1, 1, 'hotpink'))
     enemies.push(Other(10, 0, -1, 1, 'blue'))
 }
@@ -71,8 +74,6 @@ const update = dt => {
     if (btn('Up')) dy = -1
     if (btn('Down')) dy = 1
 
-    currentAmoeba.centreX = 2
-    currentAmoeba.centreY = clamp(0, currentField.h - 1, currentAmoeba.centreY + dy)
 
     if (currentTick >= 0.75) {
         for (const enemy of enemies) {
@@ -111,24 +112,27 @@ const render = () => {
 
         for (let i = 0; i < currentField.w; i++) {
 
-            if (i === currentAmoeba.centreX && j === currentAmoeba.centreY) {
+          if (i === currentAmoeba.startX && j === currentAmoeba.startY) {
+
                 stage.fillStyle = currentAmoeba.color
 
                 const cellX = (i * (cellW + 2)) + currentField.offsetX
                 , cellY = (j * (cellH + 2)) + currentField.offsetY
-                stage.fillRect(cellX + 6, cellY + 6,
-                               cellW + 14, cellH + 14)
+                stage.fillRect(cellX + 0, cellY + 0,
+                               cellW + currentAmoeba.centreX*currentAmoeba.sizeFactor,
+                               cellH + currentAmoeba.centreY*currentAmoeba.sizeFactor)
             }
 
         }
     }
 
     for (const enemy of enemies) {
+
        const cellX = (enemy.x * (cellW + 2)) + currentField.offsetX
        , cellY = (enemy.y * (cellH + 2)) + currentField.offsetY
        stage.fillStyle = enemy.color
        stage.fillRect(cellX + 14, cellY + 14,
-                      cellW - 10, cellH - 10)
+                      cellW - 1, cellH - 1)
    }
 }
 
