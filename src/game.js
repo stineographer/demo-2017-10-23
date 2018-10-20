@@ -55,6 +55,12 @@ const Amoeba = (x, y, sizeFactor=2, color='yellow') => ({
   color
 })
 
+const amoebaBoundaryCheck = (incomingX, incomingY) => {
+  withinXboundary = (incomingX >= currentAmoeba.startX && incomingX <= currentAmoeba.maxX)
+  withinYboundary = (incomingY >= currentAmoeba.startY && incomingY <= currentAmoeba.maxY)
+
+  return withinXboundary && withinYboundary
+}
 
 const Other = (x, y, dx, dy, color='pink') => ({
     x, y, dx, dy, color, remove: false
@@ -83,24 +89,30 @@ const update = dt => {
             enemy.y += enemy.dy
 
             // Amoeba boundary check!
-            if(enemy.x >= currentAmoeba.startX && enemy.y >= currentAmoeba.startY){
+            if(amoebaBoundaryCheck(enemy.x, enemy.y)){
               //Amoeba breach protocol!
               currentAmoeba.color='red'
               //begin evasive action!
               currentAmoeba.startX += currentAmoeba.sizeFactor
               currentAmoeba.startY -= currentAmoeba.sizeFactor
+              currentAmoeba.maxX = currentAmoeba.startX*currentAmoeba.sizeFactor*2
+              currentAmoeba.maxY = currentAmoeba.startY*currentAmoeba.sizeFactor*2
             }
-
+          
             if (enemy.x < 0 ||
                 enemy.x > currentField.width - 1 ||
                 enemy.y < 0 ||
                 enemy.y > currentField.height - 1)
                 enemy.remove = true
+
+                console.log("Amoeba start coordinates", currentAmoeba.startX, currentAmoeba.startY)
+                console.log("Amoeba max coordinates", currentAmoeba.maxX, currentAmoeba.maxY)
+                console.log("enemy coordinates", enemy.x, enemy.y)
         }
         currentTick = 0
     }
 
-    console.log("Amoeba start coordinates", currentAmoeba.startX, currentAmoeba.startY)
+
     enemies = enemies.filter(e => e.remove === false)
 
     currentTick += dt
@@ -132,6 +144,7 @@ const render = () => {
                 const cellX = (i * (cellWidth + 2)) + currentField.offsetX
                 , cellY = (j * (cellHeight + 2)) + currentField.offsetY
 
+                console.log("amoeba colouring", currentAmoeba.centreX*currentAmoeba.sizeFactor, currentAmoeba.centreY*currentAmoeba.sizeFactor)
                 stage.fillRect(cellX + 0, cellY + 0,
                                cellWidth + currentAmoeba.centreX*currentAmoeba.sizeFactor,
                                cellHeight + currentAmoeba.centreY*currentAmoeba.sizeFactor)
@@ -143,7 +156,7 @@ const render = () => {
     for (const enemy of enemies) {
       //this is what colors in the enemies
       stage.fillStyle = enemy.color
-      
+
        const cellX = (enemy.x * (cellWidth + 2)) + currentField.offsetX
        , cellY = (enemy.y * (cellHeight + 2)) + currentField.offsetY
 
