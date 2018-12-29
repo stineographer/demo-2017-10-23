@@ -8,8 +8,8 @@ const canvas = document.getElementById('stage')
     Up: 0,
     Down: 0
 }
-, cellWidth = 16
-, cellHeight = 16
+, cellWidth = 15
+, cellHeight = 15
 
 let then = Date.now()
 
@@ -44,7 +44,25 @@ const Field = (width, height, offsetX=0, offsetY=0) => ({
     offsetY
 })
 
-const Amoeba = (x, y, sizeFactor=2, color='yellow') => ({
+const Amoeba = (x, y, sizeFactor=1, color='yellow') => ({
+  startX: x,
+  startY: y,
+  sizeFactor: sizeFactor,
+  centreX: x*sizeFactor,
+  centreY: y*sizeFactor,
+  maxX: x*sizeFactor,
+  maxY: y*sizeFactor,
+  color
+})
+
+const amoebaBoundaryCheck = (incomingX, incomingY) => {
+  withinXboundary = (incomingX >= currentAmoeba.startX && incomingX <= currentAmoeba.maxX)
+  withinYboundary = (incomingY >= currentAmoeba.startY && incomingY <= currentAmoeba.maxY)
+      console.log("boundaries", withinXboundary, withinYboundary)
+  return withinXboundary && withinYboundary
+}
+
+const Anemone = (x, y, sizeFactor=2, color='fuchsia') => ({
   startX: x,
   startY: y,
   sizeFactor: sizeFactor,
@@ -55,23 +73,39 @@ const Amoeba = (x, y, sizeFactor=2, color='yellow') => ({
   color
 })
 
-const amoebaBoundaryCheck = (incomingX, incomingY) => {
-  withinXboundary = (incomingX >= currentAmoeba.startX && incomingX <= currentAmoeba.maxX)
-  withinYboundary = (incomingY >= currentAmoeba.startY && incomingY <= currentAmoeba.maxY)
-
-  return withinXboundary && withinYboundary
-}
-
 const Other = (x, y, dx, dy, color='pink') => ({
     x, y, dx, dy, color, remove: false
 })
+
+const colouringIn = (startX, startY, color, sizeFactor) => {
+  for (let j = 0; j < currentField.height; j++) {
+
+      for (let i = 0; i < currentField.width; i++) {
+        //when i and j reach starting coordinates
+        if (i === startX && j === startY) {
+          //this is what draws the object
+              stage.fillStyle = color
+              // cellX and cellY are the starting points
+              //where colour will be filled in
+              const cellX = (i * (cellWidth + 2)) + currentField.offsetX
+              , cellY = (j * (cellHeight + 2)) + currentField.offsetY
+
+              console.log("colouring")
+              stage.fillRect(cellX + 0, cellY + 0,
+                             cellWidth + sizeFactor, cellHeight + sizeFactor)
+          }
+
+      }
+  }
+}
 
 const init = () => {
     currentField = Field(32, 32, 16, 16)
 
     currentAmoeba = Amoeba(8, 8)
+    currentAnemone = Anemone(9, 9, 60)
 
-    enemies.push(Other(0, 0, 1, 1, 'hotpink'))
+    enemies.push(Other(0, 0, 1, 1, 'aqua'))
     enemies.push(Other(10, 0, -1, 1, 'blue'))
 }
 
@@ -91,14 +125,13 @@ const update = dt => {
             // Amoeba boundary check!
             if(amoebaBoundaryCheck(enemy.x, enemy.y)){
               //Amoeba breach protocol!
-              currentAmoeba.color='red'
               //begin evasive action!
               currentAmoeba.startX += currentAmoeba.sizeFactor
               currentAmoeba.startY -= currentAmoeba.sizeFactor
-              currentAmoeba.maxX = currentAmoeba.startX*currentAmoeba.sizeFactor*2
-              currentAmoeba.maxY = currentAmoeba.startY*currentAmoeba.sizeFactor*2
+              currentAmoeba.maxX = currentAmoeba.startX*currentAmoeba.sizeFactor
+              currentAmoeba.maxY = currentAmoeba.startY*currentAmoeba.sizeFactor
             }
-          
+
             if (enemy.x < 0 ||
                 enemy.x > currentField.width - 1 ||
                 enemy.y < 0 ||
@@ -119,9 +152,11 @@ const update = dt => {
 }
 
 const render = () => {
-    stage.fillStyle = 'black'
+
+    stage.fillStyle = 'blue' //sets colour for background
     stage.fillRect(0, 0, stageWidth, stageHeight)
 
+    //creates grid on top of background
     for (let j = 0; j < currentField.height; j++) {
 
         for (let i = 0; i < currentField.width; i++) {
@@ -132,26 +167,8 @@ const render = () => {
         }
     }
 
-    for (let j = 0; j < currentField.height; j++) {
-
-        for (let i = 0; i < currentField.width; i++) {
-          //when i and j reach Amoeba's starting coordinates
-          if (i === currentAmoeba.startX && j === currentAmoeba.startY) {
-            //this is what draws the Amoeba
-                stage.fillStyle = currentAmoeba.color
-                // cellX and cellY are the starting points
-                //where colour will be filled in for Amoeba
-                const cellX = (i * (cellWidth + 2)) + currentField.offsetX
-                , cellY = (j * (cellHeight + 2)) + currentField.offsetY
-
-                console.log("amoeba colouring", currentAmoeba.centreX*currentAmoeba.sizeFactor, currentAmoeba.centreY*currentAmoeba.sizeFactor)
-                stage.fillRect(cellX + 0, cellY + 0,
-                               cellWidth + currentAmoeba.centreX*currentAmoeba.sizeFactor,
-                               cellHeight + currentAmoeba.centreY*currentAmoeba.sizeFactor)
-            }
-
-        }
-    }
+    colouringIn(currentAmoeba.startX, currentAmoeba.startY, currentAmoeba.color, currentAmoeba.sizeFactor)
+    colouringIn(currentAnemone.startX, currentAnemone.startY, currentAnemone.color, currentAnemone.sizeFactor)
 
     for (const enemy of enemies) {
       //this is what colors in the enemies
