@@ -16,11 +16,9 @@ let then = Date.now()
 canvas.width = stageWidth
 canvas.height = stageHeight
 
-//setting background colour
-stage.fillColor = 'black'
 stage.fillRect(0, 0, canvas.width, canvas.height)
 
-let currentAmoeba, currentField, currentTick = 0, enemies = []
+let currentField, currentTick = 0, enemies = [], organisms = []
 
 const btn = name => name in buttons && buttons[name]
 
@@ -44,6 +42,14 @@ const Field = (width, height, offsetX=0, offsetY=0) => ({
     offsetY
 })
 
+const Periphery = (incoming_array) => ({
+  minX: _.minBy(incoming_array, 'startX').startX,
+  maxX: _.maxBy(incoming_array, 'maxX').maxX,
+
+  minY: _.minBy(incoming_array, 'startY').startY,
+  maxY: _.maxBy(incoming_array, 'maxY').maxY
+})
+
 const Amoeba = (x, y, sizeFactor=1, color='yellow') => ({
   startX: x,
   startY: y,
@@ -55,11 +61,13 @@ const Amoeba = (x, y, sizeFactor=1, color='yellow') => ({
   color
 })
 
-const amoebaBoundaryCheck = (incomingX, incomingY) => {
-  withinXboundary = (incomingX >= currentAmoeba.startX && incomingX <= currentAmoeba.maxX)
-  withinYboundary = (incomingY >= currentAmoeba.startY && incomingY <= currentAmoeba.maxY)
+const amoebaBoundaryCheck = (incomingX, incomingY, incomingPeriphery) => {
+  //change this to the periphery of the organism as whole??
+    withinXboundary = (incomingX >= incomingPeriphery.minX && incomingX <= incomingPeriphery.maxX)
+    withinYboundary = (incomingY >= incomingPeriphery.minY && incomingY <= incomingPeriphery.maxY)
+
       console.log("boundaries", withinXboundary, withinYboundary)
-  return withinXboundary && withinYboundary
+  return withinXboundary || withinYboundary
 }
 
 const Anemone = (x, y, sizeFactor=2, color='fuchsia') => ({
@@ -90,7 +98,6 @@ const colouringIn = (startX, startY, color, sizeFactor) => {
               const cellX = (i * (cellWidth + 2)) + currentField.offsetX
               , cellY = (j * (cellHeight + 2)) + currentField.offsetY
 
-              console.log("colouring")
               stage.fillRect(cellX + 0, cellY + 0,
                              cellWidth + sizeFactor, cellHeight + sizeFactor)
           }
@@ -102,8 +109,13 @@ const colouringIn = (startX, startY, color, sizeFactor) => {
 const init = () => {
     currentField = Field(32, 32, 16, 16)
 
-    currentAmoeba = Amoeba(8, 8)
-    currentAnemone = Anemone(9, 9, 60)
+    organisms.push(Amoeba(5, 5))
+    organisms.push(Amoeba(4, 4))
+    organisms.push(Amoeba(3, 3))
+    currentAmoeba = Amoeba(6, 6)
+
+    currentAnemone = Anemone(7, 7, 60)
+    //organisms.push(currentAnemone)
 
     enemies.push(Other(0, 0, 1, 1, 'aqua'))
     enemies.push(Other(10, 0, -1, 1, 'blue'))
@@ -122,15 +134,22 @@ const update = dt => {
             enemy.x += enemy.dx
             enemy.y += enemy.dy
 
+            //currentPeriphery
+            currentPeriphery = Periphery(organisms)
+
+            console.log("enemy coordinates X: " + enemy.x + ", Y:" + enemy.y + " periphery ", currentPeriphery)
+
             // Amoeba boundary check!
-            if(amoebaBoundaryCheck(enemy.x, enemy.y)){
+            if(amoebaBoundaryCheck(enemy.x, enemy.y, currentPeriphery)){
               //Amoeba breach protocol!
               //begin evasive action!
+              //this one still works but only moves once!
               currentAmoeba.startX += currentAmoeba.sizeFactor
               currentAmoeba.startY -= currentAmoeba.sizeFactor
               currentAmoeba.maxX = currentAmoeba.startX*currentAmoeba.sizeFactor
               currentAmoeba.maxY = currentAmoeba.startY*currentAmoeba.sizeFactor
-            }
+
+            }//end of boundaryCheck!
 
             if (enemy.x < 0 ||
                 enemy.x > currentField.width - 1 ||
@@ -138,9 +157,6 @@ const update = dt => {
                 enemy.y > currentField.height - 1)
                 enemy.remove = true
 
-                console.log("Amoeba start coordinates", currentAmoeba.startX, currentAmoeba.startY)
-                console.log("Amoeba max coordinates", currentAmoeba.maxX, currentAmoeba.maxY)
-                console.log("enemy coordinates", enemy.x, enemy.y)
         }
         currentTick = 0
     }
@@ -167,8 +183,13 @@ const render = () => {
         }
     }
 
-    colouringIn(currentAmoeba.startX, currentAmoeba.startY, currentAmoeba.color, currentAmoeba.sizeFactor)
     colouringIn(currentAnemone.startX, currentAnemone.startY, currentAnemone.color, currentAnemone.sizeFactor)
+    colouringIn(currentAmoeba.startX, currentAmoeba.startY, currentAmoeba.color, currentAmoeba.sizeFactor)
+
+    for(const amoeba of organisms){
+      colouringIn(amoeba.startX, amoeba.startY, amoeba.color, amoeba.sizeFactor)
+    }
+
 
     for (const enemy of enemies) {
       //this is what colors in the enemies
