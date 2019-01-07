@@ -54,8 +54,7 @@ const Amoeba = (x, y, sizeFactor=1, color='yellow') => ({
   startX: x,
   startY: y,
   sizeFactor: sizeFactor,
-  centreX: x*sizeFactor,
-  centreY: y*sizeFactor,
+
   maxX: x*sizeFactor,
   maxY: y*sizeFactor,
   color
@@ -67,15 +66,14 @@ const amoebaBoundaryCheck = (incomingX, incomingY, incomingPeriphery) => {
     withinYboundary = (incomingY >= incomingPeriphery.minY && incomingY <= incomingPeriphery.maxY)
 
       console.log("boundaries", withinXboundary, withinYboundary)
-  return withinXboundary || withinYboundary
+  return withinXboundary && withinYboundary
 }
 
 const Anemone = (x, y, sizeFactor=2, color='fuchsia') => ({
   startX: x,
   startY: y,
   sizeFactor: sizeFactor,
-  centreX: x*sizeFactor,
-  centreY: y*sizeFactor,
+
   maxX: x*sizeFactor*2,
   maxY: y*sizeFactor*2,
   color
@@ -113,8 +111,9 @@ const init = () => {
     organisms.push(Amoeba(4, 4))
     organisms.push(Amoeba(3, 3))
     currentAmoeba = Amoeba(6, 6)
+    organisms.push(currentAmoeba)
 
-    currentAnemone = Anemone(7, 7, 60)
+    currentAnemone = Anemone(7, 7, 50)
     //organisms.push(currentAnemone)
 
     enemies.push(Other(0, 0, 1, 1, 'aqua'))
@@ -134,21 +133,15 @@ const update = dt => {
             enemy.x += enemy.dx
             enemy.y += enemy.dy
 
-            //currentPeriphery
             currentPeriphery = Periphery(organisms)
 
             console.log("enemy coordinates X: " + enemy.x + ", Y:" + enemy.y + " periphery ", currentPeriphery)
-
-            // Amoeba boundary check!
-            if(amoebaBoundaryCheck(enemy.x, enemy.y, currentPeriphery)){
+            console.log("Anemone maxX ", currentAnemone.maxX)
+            if(amoebaBoundaryCheck(enemy.x, enemy.y, currentPeriphery) && (currentPeriphery.maxX < currentAnemone.maxX)){
               //Amoeba breach protocol!
               //begin evasive action!
-              //this one still works but only moves once!
               currentAmoeba.startX += currentAmoeba.sizeFactor
-              currentAmoeba.startY -= currentAmoeba.sizeFactor
-              currentAmoeba.maxX = currentAmoeba.startX*currentAmoeba.sizeFactor
-              currentAmoeba.maxY = currentAmoeba.startY*currentAmoeba.sizeFactor
-
+              currentAmoeba.maxX = currentAmoeba.startX
             }//end of boundaryCheck!
 
             if (enemy.x < 0 ||
