@@ -50,7 +50,7 @@ const Periphery = (incoming_array) => ({
   maxY: _.maxBy(incoming_array, 'maxY').maxY
 })
 
-const Amoeba = (x, y, sizeFactor=1, color='yellow') => ({
+const TentacleUnit = (x, y, sizeFactor=1, color='yellow') => ({
   startX: x,
   startY: y,
   sizeFactor: sizeFactor,
@@ -69,7 +69,7 @@ const boundaryCheck = (incomingX, incomingY, incomingPeriphery) => {
   return withinXboundary && withinYboundary
 }
 
-const Anemone = (x, y, sizeFactor=2, color='fuchsia') => ({
+const AnemoneBody = (x, y, sizeFactor=2, color='fuchsia') => ({
   startX: x,
   startY: y,
   sizeFactor: sizeFactor,
@@ -79,14 +79,14 @@ const Anemone = (x, y, sizeFactor=2, color='fuchsia') => ({
   color
 })
 
-const evasiveAction = (enemy, currentPeriphery, currentAmoeba, currentAnemone) => {
+const evasiveAction = (enemy, currentPeriphery, currentTentacleUnit, currentAnemoneBody) => {
   if(boundaryCheck(enemy.x, enemy.y, currentPeriphery) &&
-  (currentAmoeba.maxY < currentAnemone.maxY) &&
-  (currentAmoeba.maxX <= (currentAnemone.maxX - currentAnemone.sizeFactor))){
-    //Amoeba breach protocol!
+  (currentTentacleUnit.maxY < currentAnemoneBody.maxY) &&
+  (currentTentacleUnit.maxX <= (currentAnemoneBody.maxX - currentAnemoneBody.sizeFactor))){
+    //TentacleUnit breach protocol!
     //begin evasive action!
-    currentAmoeba.startX += currentAmoeba.sizeFactor
-    currentAmoeba.maxX = currentAmoeba.startX
+    currentTentacleUnit.startX += currentTentacleUnit.sizeFactor
+    currentTentacleUnit.maxX = currentTentacleUnit.startX
   }//end of boundaryCheck!
 }
 
@@ -118,14 +118,13 @@ const colouringIn = (startX, startY, color, sizeFactor) => {
 const init = () => {
     currentField = Field(45, 45, 16, 16)
 
-    organisms.push(Amoeba(5, 5))
-    organisms.push(Amoeba(4, 4))
-    organisms.push(Amoeba(3, 3))
-    currentAmoeba = Amoeba(6, 6)
-    organisms.push(currentAmoeba)
+    organisms.push(TentacleUnit(5, 5))
+    organisms.push(TentacleUnit(4, 4))
+    organisms.push(TentacleUnit(3, 3))
+    organisms.push(TentacleUnit(6, 6))
 
-    currentAnemone = Anemone(7, 7, 45)
-    //organisms.push(currentAnemone)
+    currentAnemoneBody = AnemoneBody(7, 7, 45)
+    //organisms.push(currentAnemoneBody)
 
     enemies.push(Other(0, 0, 1, 1, 'aqua'))
     enemies.push(Other(10, 0, -1, 1, 'blue'))
@@ -147,10 +146,10 @@ const update = dt => {
             currentPeriphery = Periphery(organisms)
 
             console.log("enemy coordinates X: " + enemy.x + ", Y:" + enemy.y + " periphery ", currentPeriphery)
-            console.log("Anemone maxX ", currentAnemone.maxX)
+            console.log("AnemoneBody maxX ", currentAnemoneBody.maxX)
 
             for(const organism of organisms){
-              evasiveAction(enemy, currentPeriphery, organism, currentAnemone)
+              evasiveAction(enemy, currentPeriphery, organism, currentAnemoneBody)
             }
 
 
@@ -187,11 +186,10 @@ const render = () => {
         }
     }
 
-    colouringIn(currentAnemone.startX, currentAnemone.startY, currentAnemone.color, currentAnemone.sizeFactor)
-    colouringIn(currentAmoeba.startX, currentAmoeba.startY, currentAmoeba.color, currentAmoeba.sizeFactor)
+    colouringIn(currentAnemoneBody.startX, currentAnemoneBody.startY, currentAnemoneBody.color, currentAnemoneBody.sizeFactor)
 
-    for(const amoeba of organisms){
-      colouringIn(amoeba.startX, amoeba.startY, amoeba.color, amoeba.sizeFactor)
+    for(const organism of organisms){
+      colouringIn(organism.startX, organism.startY, organism.color, organism.sizeFactor)
     }
 
 
