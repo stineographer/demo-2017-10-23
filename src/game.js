@@ -1,7 +1,7 @@
 const canvas = document.getElementById('stage')
 , stage = canvas.getContext('2d')
-, stageWidth = 640
-, stageHeight = 640
+, stageWidth = 840
+, stageHeight = 840
 , buttons = {
     Left: 0,
     Right: 0,
@@ -55,15 +55,15 @@ const Amoeba = (x, y, sizeFactor=1, color='yellow') => ({
   startY: y,
   sizeFactor: sizeFactor,
 
-  maxX: x*sizeFactor,
-  maxY: y*sizeFactor,
+  maxX: x + sizeFactor,
+  maxY: y + sizeFactor,
   color
 })
 
-const amoebaBoundaryCheck = (incomingX, incomingY, incomingPeriphery) => {
+const boundaryCheck = (incomingX, incomingY, incomingPeriphery) => {
   //change this to the periphery of the organism as whole??
-    withinXboundary = (incomingX >= incomingPeriphery.minX && incomingX <= incomingPeriphery.maxX)
-    withinYboundary = (incomingY >= incomingPeriphery.minY && incomingY <= incomingPeriphery.maxY)
+    withinXboundary = (incomingX >= incomingPeriphery.minX && incomingX < incomingPeriphery.maxX)
+    withinYboundary = (incomingY >= incomingPeriphery.minY && incomingY < incomingPeriphery.maxY)
 
       console.log("boundaries", withinXboundary, withinYboundary)
   return withinXboundary && withinYboundary
@@ -74,8 +74,8 @@ const Anemone = (x, y, sizeFactor=2, color='fuchsia') => ({
   startY: y,
   sizeFactor: sizeFactor,
 
-  maxX: x*sizeFactor*2,
-  maxY: y*sizeFactor*2,
+  maxX: x + sizeFactor,
+  maxY: y + sizeFactor,
   color
 })
 
@@ -93,10 +93,10 @@ const colouringIn = (startX, startY, color, sizeFactor) => {
               stage.fillStyle = color
               // cellX and cellY are the starting points
               //where colour will be filled in
-              const cellX = (i * (cellWidth + 2)) + currentField.offsetX
-              , cellY = (j * (cellHeight + 2)) + currentField.offsetY
+              const cellX = (i * (cellWidth)) + currentField.offsetX
+              , cellY = (j * (cellHeight)) + currentField.offsetY
 
-              stage.fillRect(cellX + 0, cellY + 0,
+              stage.fillRect(cellX, cellY,
                              cellWidth + sizeFactor, cellHeight + sizeFactor)
           }
 
@@ -105,7 +105,7 @@ const colouringIn = (startX, startY, color, sizeFactor) => {
 }
 
 const init = () => {
-    currentField = Field(32, 32, 16, 16)
+    currentField = Field(45, 45, 16, 16)
 
     organisms.push(Amoeba(5, 5))
     organisms.push(Amoeba(4, 4))
@@ -113,7 +113,7 @@ const init = () => {
     currentAmoeba = Amoeba(6, 6)
     organisms.push(currentAmoeba)
 
-    currentAnemone = Anemone(7, 7, 50)
+    currentAnemone = Anemone(7, 7, 45)
     //organisms.push(currentAnemone)
 
     enemies.push(Other(0, 0, 1, 1, 'aqua'))
@@ -137,7 +137,9 @@ const update = dt => {
 
             console.log("enemy coordinates X: " + enemy.x + ", Y:" + enemy.y + " periphery ", currentPeriphery)
             console.log("Anemone maxX ", currentAnemone.maxX)
-            if(amoebaBoundaryCheck(enemy.x, enemy.y, currentPeriphery) && (currentPeriphery.maxX < currentAnemone.maxX)){
+            if(boundaryCheck(enemy.x, enemy.y, currentPeriphery) &&
+            (currentAmoeba.maxY < currentAnemone.maxY) &&
+            (currentAmoeba.maxX <= (currentAnemone.maxX - currentAnemone.sizeFactor))){
               //Amoeba breach protocol!
               //begin evasive action!
               currentAmoeba.startX += currentAmoeba.sizeFactor
