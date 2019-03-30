@@ -8,8 +8,8 @@ const canvas = document.getElementById('stage')
     Up: 0,
     Down: 0
 }
-, cellWidth = 15
-, cellHeight = 15
+, cellWidth = 10
+, cellHeight = 10
 
 let then = Date.now()
 
@@ -18,7 +18,7 @@ canvas.height = stageHeight
 
 stage.fillRect(0, 0, canvas.width, canvas.height)
 
-let currentField, currentTick = 0, enemies = [], organisms = []
+let currentField, currentTick = 0, enemies = [], tentacle = []
 
 const btn = name => name in buttons && buttons[name]
 
@@ -87,6 +87,7 @@ const evasiveAction = (enemy, currentPeriphery, currentTentacleUnit, currentAnem
     //begin evasive action!
     currentTentacleUnit.startX += currentTentacleUnit.sizeFactor
     currentTentacleUnit.maxX = currentTentacleUnit.startX
+
   }//end of boundaryCheck!
 }
 
@@ -116,15 +117,19 @@ const colouringIn = (startX, startY, color, sizeFactor) => {
 }
 
 const init = () => {
-    currentField = Field(45, 45, 16, 16)
+    currentField = Field(65, 65, 16, 16)
 
-    organisms.push(TentacleUnit(5, 5))
-    organisms.push(TentacleUnit(4, 4))
-    organisms.push(TentacleUnit(3, 3))
-    organisms.push(TentacleUnit(6, 6))
+    tentacle.push(TentacleUnit(5, 5))
+    tentacle.push(TentacleUnit(4, 4))
+    tentacle.push(TentacleUnit(3, 3))
+    tentacle.push(TentacleUnit(6, 6))
 
-    currentAnemoneBody = AnemoneBody(7, 7, 45)
-    //organisms.push(currentAnemoneBody)
+    tentacle.push(TentacleUnit(10, 6))
+    tentacle.push(TentacleUnit(11, 5))
+    tentacle.push(TentacleUnit(12, 4))
+    tentacle.push(TentacleUnit(13, 3))
+
+    currentAnemoneBody = AnemoneBody(6, 7, 40)
 
     enemies.push(Other(0, 0, 1, 1, 'aqua'))
     enemies.push(Other(10, 0, -1, 1, 'blue'))
@@ -143,12 +148,12 @@ const update = dt => {
             enemy.x += enemy.dx
             enemy.y += enemy.dy
 
-            currentPeriphery = Periphery(organisms)
+            currentPeriphery = Periphery(tentacle)
 
             console.log("enemy coordinates X: " + enemy.x + ", Y:" + enemy.y + " periphery ", currentPeriphery)
             console.log("AnemoneBody maxX ", currentAnemoneBody.maxX)
 
-            for(const organism of organisms){
+            for(const organism of tentacle){
               evasiveAction(enemy, currentPeriphery, organism, currentAnemoneBody)
             }
 
@@ -188,7 +193,7 @@ const render = () => {
 
     colouringIn(currentAnemoneBody.startX, currentAnemoneBody.startY, currentAnemoneBody.color, currentAnemoneBody.sizeFactor)
 
-    for(const organism of organisms){
+    for(const organism of tentacle){
       colouringIn(organism.startX, organism.startY, organism.color, organism.sizeFactor)
     }
 
