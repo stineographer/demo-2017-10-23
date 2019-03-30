@@ -79,6 +79,17 @@ const Anemone = (x, y, sizeFactor=2, color='fuchsia') => ({
   color
 })
 
+const evasiveAction = (enemy, currentPeriphery, currentAmoeba, currentAnemone) => {
+  if(boundaryCheck(enemy.x, enemy.y, currentPeriphery) &&
+  (currentAmoeba.maxY < currentAnemone.maxY) &&
+  (currentAmoeba.maxX <= (currentAnemone.maxX - currentAnemone.sizeFactor))){
+    //Amoeba breach protocol!
+    //begin evasive action!
+    currentAmoeba.startX += currentAmoeba.sizeFactor
+    currentAmoeba.maxX = currentAmoeba.startX
+  }//end of boundaryCheck!
+}
+
 const Other = (x, y, dx, dy, color='pink') => ({
     x, y, dx, dy, color, remove: false
 })
@@ -137,14 +148,12 @@ const update = dt => {
 
             console.log("enemy coordinates X: " + enemy.x + ", Y:" + enemy.y + " periphery ", currentPeriphery)
             console.log("Anemone maxX ", currentAnemone.maxX)
-            if(boundaryCheck(enemy.x, enemy.y, currentPeriphery) &&
-            (currentAmoeba.maxY < currentAnemone.maxY) &&
-            (currentAmoeba.maxX <= (currentAnemone.maxX - currentAnemone.sizeFactor))){
-              //Amoeba breach protocol!
-              //begin evasive action!
-              currentAmoeba.startX += currentAmoeba.sizeFactor
-              currentAmoeba.maxX = currentAmoeba.startX
-            }//end of boundaryCheck!
+
+            for(const organism of organisms){
+              evasiveAction(enemy, currentPeriphery, organism, currentAnemone)
+            }
+
+
 
             if (enemy.x < 0 ||
                 enemy.x > currentField.width - 1 ||
@@ -152,7 +161,7 @@ const update = dt => {
                 enemy.y > currentField.height - 1)
                 enemy.remove = true
 
-        }
+        }//end of enemies
         currentTick = 0
     }
 
