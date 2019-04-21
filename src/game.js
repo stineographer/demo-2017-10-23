@@ -18,7 +18,7 @@ canvas.height = stageHeight
 
 stage.fillRect(0, 0, canvas.width, canvas.height)
 
-let currentField, currentTick = 0, enemies = [], tentacle = []
+let currentField, currentTick = 0, water = [], tentacles = []
 
 const btn = name => name in buttons && buttons[name]
 
@@ -66,7 +66,7 @@ const boundaryCheck = (incomingX, incomingY, incomingPeriphery) => {
     withinYboundary = (incomingY >= incomingPeriphery.minY && incomingY < incomingPeriphery.maxY)
 
       console.log("boundaries", withinXboundary, withinYboundary)
-  return withinXboundary && withinYboundary
+  return withinXboundary || withinYboundary
 }
 
 const AnemoneBody = (x, y, sizeFactor=2, color='fuchsia') => ({
@@ -79,10 +79,10 @@ const AnemoneBody = (x, y, sizeFactor=2, color='fuchsia') => ({
   color
 })
 
-const evasiveAction = (enemy, currentPeriphery, currentTentacleUnit, currentAnemoneBody) => {
-  if(boundaryCheck(enemy.x, enemy.y, currentPeriphery) &&
-  (currentTentacleUnit.maxY < currentAnemoneBody.maxY) &&
-  (currentTentacleUnit.maxX <= (currentAnemoneBody.maxX - currentAnemoneBody.sizeFactor))){
+const evasiveAction = (drop, currentPeriphery, currentTentacleUnit, currentAnemoneBody) => {
+  if(boundaryCheck(drop.x, drop.y, currentPeriphery) &&
+  (currentTentacleUnit.maxY <= drop.y) ||
+  (currentTentacleUnit.maxX <= (currentTentacleUnit.maxX - currentAnemoneBody.sizeFactor))){
     //TentacleUnit breach protocol!
     //begin evasive action!
     currentTentacleUnit.startX += currentTentacleUnit.sizeFactor
@@ -119,27 +119,27 @@ const colouringIn = (startX, startY, color, sizeFactor) => {
 const init = () => {
     currentField = Field(65, 65, 16, 16)
 
-    tentacle.push(TentacleUnit(5, 5))
-    tentacle.push(TentacleUnit(4, 4))
-    tentacle.push(TentacleUnit(3, 3))
-    tentacle.push(TentacleUnit(6, 6))
+    tentacles.push(TentacleUnit(5, 5))
+    tentacles.push(TentacleUnit(4, 4))
+    tentacles.push(TentacleUnit(3, 3))
+    tentacles.push(TentacleUnit(6, 6))
 
-    tentacle.push(TentacleUnit(9, 6))
-    tentacle.push(TentacleUnit(8, 5))
-    tentacle.push(TentacleUnit(7, 4))
-    tentacle.push(TentacleUnit(6, 3))
+    tentacles.push(TentacleUnit(9, 6, 1, 'fuchsia'))
+    tentacles.push(TentacleUnit(8, 5, 1, 'fuchsia'))
+    tentacles.push(TentacleUnit(7, 4, 1, 'fuchsia'))
+    tentacles.push(TentacleUnit(6, 3, 1, 'fuchsia'))
 
 
-    tentacle.push(TentacleUnit(10, 6))
-    tentacle.push(TentacleUnit(11, 5))
-    tentacle.push(TentacleUnit(12, 4))
-    tentacle.push(TentacleUnit(13, 3))
+    tentacles.push(TentacleUnit(10, 6))
+    tentacles.push(TentacleUnit(11, 5))
+    tentacles.push(TentacleUnit(12, 4))
+    tentacles.push(TentacleUnit(13, 3))
 
     currentAnemoneBody = AnemoneBody(6, 7, 40)
 
-    enemies.push(Other(9, 0, -1, 1, 'teal'))
-    enemies.push(Other(0, 0, 1, 1, 'aqua'))
-    enemies.push(Other(10, 0, -1, 1, 'blue'))
+    water.push(Other(9, 0, -1, 1, 'teal'))
+    water.push(Other(0, 0, 1, 1, 'aqua'))
+    water.push(Other(10, 0, -1, 1, 'blue'))
 }
 
 const update = dt => {
@@ -151,33 +151,33 @@ const update = dt => {
     if (btn('Down')) dy = 1
 
     if (currentTick >= 0.75) {
-        for (const enemy of enemies) {
-            enemy.x += enemy.dx
-            enemy.y += enemy.dy
+        for (const drop of water) {
+            drop.x += drop.dx
+            drop.y += drop.dy
 
-            currentPeriphery = Periphery(tentacle)
+            currentPeriphery = Periphery(tentacles)
 
-            console.log("enemy coordinates X: " + enemy.x + ", Y:" + enemy.y + " periphery ", currentPeriphery)
-            console.log("AnemoneBody maxX ", currentAnemoneBody.maxX)
+            console.log("drop coordinates X: " + drop.x + ", Y:" + drop.y + " periphery ", currentPeriphery)
+            console.log("currentPeriphery maxX ", currentPeriphery.maxX)
 
-            for(const organism of tentacle){
-              evasiveAction(enemy, currentPeriphery, organism, currentAnemoneBody)
+            for(const unit of tentacles){
+              evasiveAction(drop, currentPeriphery, unit, currentAnemoneBody)
             }
 
 
 
-            if (enemy.x < 0 ||
-                enemy.x > currentField.width - 1 ||
-                enemy.y < 0 ||
-                enemy.y > currentField.height - 1)
-                enemy.remove = true
+            if (drop.x < 0 ||
+                drop.x > currentField.width - 1 ||
+                drop.y < 0 ||
+                drop.y > currentField.height - 1)
+                drop.remove = true
 
-        }//end of enemies
+        }//end of water
         currentTick = 0
     }
 
 
-    enemies = enemies.filter(e => e.remove === false)
+    water = water.filter(e => e.remove === false)
 
     currentTick += dt
 }
@@ -200,17 +200,17 @@ const render = () => {
 
     colouringIn(currentAnemoneBody.startX, currentAnemoneBody.startY, currentAnemoneBody.color, currentAnemoneBody.sizeFactor)
 
-    for(const organism of tentacle){
+    for(const organism of tentacles){
       colouringIn(organism.startX, organism.startY, organism.color, organism.sizeFactor)
     }
 
 
-    for (const enemy of enemies) {
-      //this is what colors in the enemies
-      stage.fillStyle = enemy.color
+    for (const drop of water) {
+      //this is what colors in the water
+      stage.fillStyle = drop.color
 
-       const cellX = (enemy.x * (cellWidth + 2)) + currentField.offsetX
-       , cellY = (enemy.y * (cellHeight + 2)) + currentField.offsetY
+       const cellX = (drop.x * (cellWidth + 2)) + currentField.offsetX
+       , cellY = (drop.y * (cellHeight + 2)) + currentField.offsetY
 
        stage.fillRect(cellX + 14, cellY + 14,
                       cellWidth - 1, cellHeight - 1)
