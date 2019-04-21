@@ -124,6 +124,12 @@ const init = () => {
     tentacle.push(TentacleUnit(3, 3))
     tentacle.push(TentacleUnit(6, 6))
 
+    tentacle.push(TentacleUnit(9, 6))
+    tentacle.push(TentacleUnit(8, 5))
+    tentacle.push(TentacleUnit(7, 4))
+    tentacle.push(TentacleUnit(6, 3))
+
+
     tentacle.push(TentacleUnit(10, 6))
     tentacle.push(TentacleUnit(11, 5))
     tentacle.push(TentacleUnit(12, 4))
@@ -131,6 +137,7 @@ const init = () => {
 
     currentAnemoneBody = AnemoneBody(6, 7, 40)
 
+    enemies.push(Other(9, 0, -1, 1, 'teal'))
     enemies.push(Other(0, 0, 1, 1, 'aqua'))
     enemies.push(Other(10, 0, -1, 1, 'blue'))
 }
