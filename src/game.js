@@ -121,9 +121,12 @@ const colouringIn = (startX, startY, color, sizeFactor) => {
 const init = () => {
     currentField = Field(65, 65, 16, 16)
 
-    tentacles.push(TentacleUnit(5, 5))
-    tentacles.push(TentacleUnit(4, 4))
+
+
+    tentacles.push(TentacleUnit(2, 2))
     tentacles.push(TentacleUnit(3, 3))
+    tentacles.push(TentacleUnit(4, 4))
+    tentacles.push(TentacleUnit(5, 5))
     tentacles.push(TentacleUnit(6, 6))
 
     tentacles.push(TentacleUnit(9, 6, 1, 'fuchsia'))
