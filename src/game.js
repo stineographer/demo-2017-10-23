@@ -66,7 +66,7 @@ const boundaryCheck = (incomingX, incomingY, incomingPeriphery) => {
     withinYboundary = (incomingY >= incomingPeriphery.minY && incomingY < incomingPeriphery.maxY)
 
       console.log("boundaries", withinXboundary, withinYboundary)
-  return withinXboundary || withinYboundary
+  return withinXboundary && withinYboundary
 }
 
 const AnemoneBody = (x, y, sizeFactor=2, color='fuchsia') => ({
@@ -79,15 +79,17 @@ const AnemoneBody = (x, y, sizeFactor=2, color='fuchsia') => ({
   color
 })
 
-const evasiveAction = (drop, currentPeriphery, currentTentacleUnit, currentAnemoneBody) => {
-  if(boundaryCheck(drop.x, drop.y, currentPeriphery) &&
-  (currentTentacleUnit.maxY <= drop.y) ||
-  (currentTentacleUnit.maxX <= (currentTentacleUnit.maxX - currentAnemoneBody.sizeFactor))){
-    //TentacleUnit breach protocol!
-    //begin evasive action!
-    currentTentacleUnit.startX += currentTentacleUnit.sizeFactor
-    currentTentacleUnit.maxX = currentTentacleUnit.startX
-
+const evasiveAction = (drop, incomingPeriphery, currentTentacleUnit, incomingAnemoneBody) => {
+  if(
+      boundaryCheck(drop.x, drop.y, incomingPeriphery) &&
+      (currentTentacleUnit.maxY <= drop.y) &&
+      (drop.x <= incomingAnemoneBody.maxX)
+    ){
+      //TentacleUnit breach protocol!
+      //begin evasive action!
+      console.log("maxX currentAnemoneBody", incomingAnemoneBody);
+      currentTentacleUnit.startX += currentTentacleUnit.sizeFactor
+      currentTentacleUnit.maxX = currentTentacleUnit.startX
   }//end of boundaryCheck!
 }
 
@@ -135,7 +137,7 @@ const init = () => {
     tentacles.push(TentacleUnit(12, 4))
     tentacles.push(TentacleUnit(13, 3))
 
-    currentAnemoneBody = AnemoneBody(6, 7, 40)
+    currentAnemoneBody = AnemoneBody(6, 7, 30)
 
     water.push(Other(9, 0, -1, 1, 'teal'))
     water.push(Other(0, 0, 1, 1, 'aqua'))
@@ -172,7 +174,7 @@ const update = dt => {
                 drop.y > currentField.height - 1)
                 drop.remove = true
 
-        }//end of water
+        }//end of update actions
         currentTick = 0
     }
 
