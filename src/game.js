@@ -43,16 +43,16 @@ const Field = (width, height, offsetX=0, offsetY=0) => ({
 })
 
 const Periphery = (incoming_array) => ({
-  minX: _.minBy(incoming_array, 'startX').startX,
+  minX: _.minBy(incoming_array, 'minX').minX,
   maxX: _.maxBy(incoming_array, 'maxX').maxX,
 
-  minY: _.minBy(incoming_array, 'startY').startY,
+  minY: _.minBy(incoming_array, 'minY').minY,
   maxY: _.maxBy(incoming_array, 'maxY').maxY
 })
 
 const TentacleUnit = (x, y, sizeFactor=1, color='yellow') => ({
-  startX: x,
-  startY: y,
+  minX: x,
+  minY: y,
   sizeFactor: sizeFactor,
 
   maxX: x + sizeFactor,
@@ -69,7 +69,7 @@ const boundaryCheck = (incomingX, incomingY, incomingPeriphery) => {
   return withinXboundary && withinYboundary
 }
 
-const AnemoneBody = (x, y, sizeFactor=2, color='fuchsia') => ({
+const AnemoneBase = (x, y, sizeFactor=2, color='fuchsia') => ({
   startX: x,
   startY: y,
   sizeFactor: sizeFactor,
@@ -79,17 +79,31 @@ const AnemoneBody = (x, y, sizeFactor=2, color='fuchsia') => ({
   color
 })
 
-const evasiveAction = (drop, incomingPeriphery, currentTentacleUnit, incomingAnemoneBody) => {
+const evasiveAction = (drop, incomingPeriphery, currentTentacleUnit, incomingAnemoneBase) => {
   if(
       boundaryCheck(drop.x, drop.y, incomingPeriphery) &&
       (currentTentacleUnit.maxY <= drop.y) &&
-      (drop.x <= incomingAnemoneBody.maxX)
+      (incomingAnemoneBase.startX < drop.x < incomingAnemoneBase.sizeFactor)
     ){
       //TentacleUnit breach protocol!
       //begin evasive action!
-      console.log("maxX currentAnemoneBody", incomingAnemoneBody);
-      currentTentacleUnit.startX += currentTentacleUnit.sizeFactor
-      currentTentacleUnit.maxX = currentTentacleUnit.startX
+      console.log("maxX firstAnemoneBase", incomingAnemoneBase);
+      currentTentacleUnit.minX += currentTentacleUnit.sizeFactor
+      currentTentacleUnit.maxX = currentTentacleUnit.minX
+  }//end of boundaryCheck!
+}
+
+const relaxAction = (drop, incomingPeriphery, currentTentacleUnit, incomingAnemoneBase) => {
+  if(
+      boundaryCheck(drop.x, drop.y, incomingPeriphery) &&
+      (currentTentacleUnit.maxY <= drop.y) &&
+      (drop.x <= incomingAnemoneBase.maxX)
+    ){
+      //TentacleUnit breach protocol!
+      //begin evasive action!
+      console.log("maxX firstAnemoneBase", incomingAnemoneBase);
+      currentTentacleUnit.minX -= currentTentacleUnit.sizeFactor
+      currentTentacleUnit.maxX = currentTentacleUnit.minX
   }//end of boundaryCheck!
 }
 
@@ -121,8 +135,6 @@ const colouringIn = (startX, startY, color, sizeFactor) => {
 const init = () => {
     currentField = Field(65, 65, 16, 16)
 
-
-
     tentacles.push(TentacleUnit(2, 2))
     tentacles.push(TentacleUnit(3, 3))
     tentacles.push(TentacleUnit(4, 4))
@@ -134,13 +146,16 @@ const init = () => {
     tentacles.push(TentacleUnit(7, 4, 1, 'fuchsia'))
     tentacles.push(TentacleUnit(6, 3, 1, 'fuchsia'))
 
-
     tentacles.push(TentacleUnit(10, 6))
     tentacles.push(TentacleUnit(11, 5))
     tentacles.push(TentacleUnit(12, 4))
     tentacles.push(TentacleUnit(13, 3))
 
-    currentAnemoneBody = AnemoneBody(6, 7, 30)
+    topLeftAnemoneBase = AnemoneBase(6, 7, 30)
+    middleLeftAnemoneBase = AnemoneBase(1, 27, 30)
+    tentacles.push(topLeftAnemoneBase)
+    tentacles.push(middleLeftAnemoneBase)
+
 
     water.push(Other(9, 0, -1, 1, 'teal'))
     water.push(Other(0, 0, 1, 1, 'aqua'))
@@ -150,10 +165,7 @@ const init = () => {
 const update = dt => {
 
     let dx = 0, dy = 0
-    if (btn('Left')) dx = -1
-    if (btn('Right')) dx = 1
-    if (btn('Up')) dy = -1
-    if (btn('Down')) dy = 1
+
 
     if (currentTick >= 0.75) {
         for (const drop of water) {
@@ -166,8 +178,11 @@ const update = dt => {
             console.log("currentPeriphery maxX ", currentPeriphery.maxX)
 
             for(const unit of tentacles){
-              evasiveAction(drop, currentPeriphery, unit, currentAnemoneBody)
+              evasiveAction(drop, currentPeriphery, unit, topLeftAnemoneBase)
             }
+
+
+
 
 
 
@@ -203,10 +218,10 @@ const render = () => {
         }
     }
 
-    colouringIn(currentAnemoneBody.startX, currentAnemoneBody.startY, currentAnemoneBody.color, currentAnemoneBody.sizeFactor)
+    colouringIn(topLeftAnemoneBase.startX, topLeftAnemoneBase.startY, topLeftAnemoneBase.color, topLeftAnemoneBase.sizeFactor)
 
     for(const organism of tentacles){
-      colouringIn(organism.startX, organism.startY, organism.color, organism.sizeFactor)
+      colouringIn(organism.minX, organism.minY, organism.color, organism.sizeFactor)
     }
 
 
